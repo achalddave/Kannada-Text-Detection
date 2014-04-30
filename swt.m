@@ -66,6 +66,12 @@ for i=1:length(R)
         new_grad_x = FX(next_r_round, next_c_round);
         new_grad_y = FY(next_r_round, next_c_round);
 
+        % Normalize
+        hyp2 = (new_grad_x)^2 + (new_grad_y)^2;
+        c = sqrt(1/hyp2);
+        new_grad_x = new_grad_x * c;
+        new_grad_y = new_grad_y * c;
+
         % End if gradient at new point is in opposite direction
         if(acos(grad_x*-new_grad_x + grad_y*-new_grad_y) < (pi/2))
             break;
