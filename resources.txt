@@ -1,0 +1,10 @@
+Kannada/English data set
+    http://www.ee.surrey.ac.uk/CVSSP/demos/chars74k/
+
+Reducing the complexity of the Kannada characterset
+    http://mile.ee.iisc.ernet.in/mile/publications/softCopy/DocumentAnalysis/MOCR09_Mahadev.pdf
+
+    They do an analysis of Kannada and show some structural information that
+    can be used for recognition. Very useful, with one caveat: they are doing
+    online handwritten character recognition, which means they have a
+    separation of strokes purely by time. We need to separate strokes in space.
