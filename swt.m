@@ -49,15 +49,9 @@ for i=1:length(R)
         next_r_round = round(next_r);
         next_c_round = round(next_c);
 
-%         sprintf('Started at (%d, %d)', curr_r, curr_c)
-%         sprintf('Gradient: (%f, %f)', grad_y, grad_x)
-%         sprintf('Moved to: (%f, %f)', next_r, next_c)
-
         % Check if next point is valid
-        if(next_r_round <= 0 || next_r_round > h)
-            break;
-        end
-        if(next_c_round <= 0 || next_c_round > w)
+        if (next_r_round <= 0 || next_r_round > h) || ...
+            (next_c_round <= 0 || next_c_round > w)
             break;
         end
 
