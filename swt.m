@@ -4,22 +4,23 @@ function [out] = swt(IM)
         matlabpool open 4
     end
 
+    %% Configuration
+    edge_fn = @(img) edge(img, 'canny');
+
     %% CANNY EDGE DETECTION
-    E = edge(IM,'canny');
+    E = edge_fn(IM);
+    [h,w] = size(E);
+    [R,C] = find(E); % Edge locations
 
     %% SWT
     % Assume light text on dark background
-
     [FX,FY] = gradient(IM);
-    subplot(1,2,1), imagesc(FX);
-    subplot(1,2,2), imagesc(FY);
 
-    [h,w] = size(E);
-    [R,C] = find(E);
     stroke_widths = 255*ones(h,w);
     MSW = floor(sqrt(h^2+w^2));
     vectors_seen = cell(1,h*w);
 
+    % TODO: can this be parallelized?
     v = 1;
     for i=1:length(R)
         % Start at some edge pixel, get its coordinates
@@ -130,6 +131,7 @@ function [out] = swt(IM)
     end
 
     stroke_widths(stroke_widths > 150) = 0;
+
     % Connected components analysis
     'Creating connected graph'
     rows = [];
