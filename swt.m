@@ -183,15 +183,9 @@ function [out] = swt(IM, light_on_dark)
     [~, top_components] = sort(counts, 'descend');
     nr_comp = size(top_components, 2);
 
-    components = zeros(1, h * w);
-    colors = jet(nr_comp);
-    for i=1:h*w
-        components(i) = cc_labels(i);
-    end
-
     figure;
     imagesc(stroke_widths)
     figure;
-    imagesc(reshape(components, h, w))
+    imagesc(reshape(cc_labels, h, w))
     out = stroke_widths;
 end
