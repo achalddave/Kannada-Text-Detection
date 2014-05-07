@@ -5,7 +5,7 @@ function [out] = swt(IM, light_on_dark)
 
     % Assume light on dark text unless otherwise specified
     if nargin < 2 || isempty(light_on_dark)
-        light_on_dark = 1
+        light_on_dark = 1;
     end
 
     % start workers if necessary
@@ -46,7 +46,7 @@ function [out] = swt(IM, light_on_dark)
 
         % Normalize the gradient vector to length 1
         hyp2 = (grad_x)^2 + (grad_y)^2;
-        if (hyp2 == 0) continue; end
+        if (hyp2 == 0) ; continue; end
         c = sqrt(1/hyp2);
         grad_x = c*grad_x;
         grad_y = c*grad_y;
