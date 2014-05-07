@@ -1,4 +1,13 @@
-function [out] = swt(IM)
+function [out] = swt(IM, light_on_dark)
+    % TODO:
+    %   * Thresholding connected components
+    %   * Try both light on dark, dark on light, and pick best
+
+    % Assume light on dark text unless otherwise specified
+    if nargin < 2 || isempty(light_on_dark)
+        light_on_dark = 1
+    end
+
     % start workers if necessary
     if matlabpool('size') == 0
         matlabpool open 4
@@ -13,8 +22,11 @@ function [out] = swt(IM)
     [R,C] = find(E); % Edge locations
 
     %% SWT
-    % Assume light text on dark background
     [FX,FY] = gradient(IM);
+    if ~light_on_dark
+        FX = -FX;
+        FY = -FY;
+    end
 
     stroke_widths = 255*ones(h,w);
     MSW = floor(sqrt(h^2+w^2));
