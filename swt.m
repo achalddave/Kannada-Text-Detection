@@ -22,7 +22,7 @@ function [out] = swt(IM, light_on_dark)
     [R,C] = find(E); % Edge locations
 
     %% SWT
-    [FX,FY] = gradient(IM);
+    [FX,FY] = gradient(imfilter(IM, fspecial('disk', 3)));
     if ~light_on_dark
         FX = -FX;
         FY = -FY;
