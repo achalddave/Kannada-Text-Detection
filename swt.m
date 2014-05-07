@@ -1,4 +1,4 @@
-function [out] = swt(IM, light_on_dark)
+function [swt_im, ccomps] = swt(IM, light_on_dark)
     % TODO:
     %   * Thresholding connected components
     %   * Try both light on dark, dark on light, and pick best
@@ -194,13 +194,14 @@ function [out] = swt(IM, light_on_dark)
     graph_mat = sparse(rows, cols, vals, h*w, h*w);
     [num_ccs, cc_labels] = graphconncomp(graph_mat);
 
-    counts = histc(cc_labels, 1:num_ccs);
-    [~, top_components] = sort(counts, 'descend');
-    nr_comp = size(top_components, 2);
 
     figure;
     imagesc(stroke_widths)
+
+    ccomps = reshape(cc_labels, h, w);
+
     figure;
-    imagesc(reshape(cc_labels, h, w))
-    out = stroke_widths;
+    imagesc(ccomps)
+
+    swt_im = stroke_widths;
 end
