@@ -35,14 +35,21 @@ function [out] = swt(IM, light_on_dark)
     % TODO: can this be parallelized?
     'Extracting raw stroke widths'
     v = 1;
+    jump = 0.05;
     for i=1:length(R)
         % Start at some edge pixel, get its coordinates
-        curr_r = R(i);
-        curr_c = C(i);
+        % *_round = round values
+        start_r = R(i) + 0.5;
+        start_c = C(i) + 0.5;
+
+        curr_r = start_r;
+        curr_c = start_c;
+        curr_r_round = R(i);
+        curr_c_round = C(i);
 
         % Find the gradient vector components at this point
-        grad_x = FX(curr_r, curr_c);
-        grad_y = FY(curr_r, curr_c);
+        grad_x = FX(curr_r_round, curr_c_round);
+        grad_y = FY(curr_r_round, curr_c_round);
 
         % Normalize the gradient vector to length 1
         hyp2 = (grad_x)^2 + (grad_y)^2;
@@ -55,32 +62,40 @@ function [out] = swt(IM, light_on_dark)
         PV_R = zeros(1,MSW);
         PV_C = zeros(1,MSW);
 
-        sw = 0;
+        point_idx = 0;
         while(1)
             % Get next unit step along gradient
-            next_r = curr_r + grad_y;
-            next_c = curr_c + grad_x;
+            curr_r = curr_r + jump*grad_y;
+            curr_c = curr_c + jump*grad_x;
 
             % Round next point to integers to access pixel
-            next_r_round = round(next_r);
-            next_c_round = round(next_c);
+            next_r_round = round(curr_r);
+            next_c_round = round(curr_c);
+
+            if (next_r_round == curr_r_round && ...
+                next_c_round == curr_c_round)
+                continue
+            end
+
+            curr_r_round = next_r_round;
+            curr_c_round = next_c_round;
 
             % Check if next point is valid
-            if (next_r_round <= 0 || next_r_round > h) || ...
-                (next_c_round <= 0 || next_c_round > w)
+            if (curr_r_round <= 0 || curr_r_round > h) || ...
+                (curr_c_round <= 0 || curr_c_round > w)
                 break;
             end
 
             % If the point is valid, increment stroke width
-            sw = sw + 1;
+            point_idx = point_idx + 1;
 
             % Add next point to points visited
-            PV_R(1,sw) = next_r_round;
-            PV_C(1,sw) = next_c_round;
+            PV_R(1,point_idx) = curr_r_round;
+            PV_C(1,point_idx) = curr_c_round;
 
             % Get gradient at new point
-            new_grad_x = FX(next_r_round, next_c_round);
-            new_grad_y = FY(next_r_round, next_c_round);
+            new_grad_x = FX(curr_r_round, curr_c_round);
+            new_grad_y = FY(curr_r_round, curr_c_round);
 
             % Normalize
             hyp2 = (new_grad_x)^2 + (new_grad_y)^2;
@@ -92,10 +107,6 @@ function [out] = swt(IM, light_on_dark)
             if(acos(grad_x*-new_grad_x + grad_y*-new_grad_y) < (pi/2))
                 break;
             end
-
-            % Set variables for next iteration
-            curr_r = next_r;
-            curr_c = next_c;
         end
 
         % Delete trailing zeros from preallocated arrays
@@ -110,9 +121,9 @@ function [out] = swt(IM, light_on_dark)
 
         % So now PV_R and PV_C contain all points visited along a gradient
         % We need to replace all these points with the stroke width.
-
         for a=1:length(PV_R)
             old_stroke = stroke_widths(PV_R(a), PV_C(a));
+            sw = sqrt((start_r - curr_r)^2 + (start_c - curr_c)^2);
             stroke_widths(PV_R(a),PV_C(a)) = min(old_stroke, sw);
         end
     end
