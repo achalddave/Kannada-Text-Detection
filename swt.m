@@ -150,6 +150,10 @@ function [out] = swt(IM, light_on_dark)
     'Creating connected graph'
     rows = [];
     cols = [];
+
+    % raw_idx(r, c) = r + (c - 1)*h
+    %   i.e. column major index
+    raw_idx = reshape(1:h*w, h, w);
     parfor c=1:w
         for r=1:h
             neighbors = [[r+1, c]; [r, c+1]; [r+1, c+1]];
@@ -164,11 +168,11 @@ function [out] = swt(IM, light_on_dark)
                 if (((val1 / val2) <= 3 && (val2 / val1) <= 3) ...
                     || (val1 == 0 && val2 == 0))
                     idx1 = r + c * h; idx2 = rr + cc * h;
-                    rows = [rows (r + (c-1)*h)];
-                    cols = [cols (rr + (cc-1)*h)];
+                    rows = [rows raw_idx(r, c)];
+                    cols = [cols raw_idx(rr, cc)];
 
-                    rows = [rows (rr + (cc-1)*h)];
-                    cols = [cols (r + (c-1)*h)];
+                    rows = [rows raw_idx(rr, cc)];
+                    cols = [cols raw_idx(r, c)];
                 end
             end
         end
