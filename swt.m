@@ -136,7 +136,7 @@ function [out] = swt(IM)
     'Creating connected graph'
     rows = [];
     cols = [];
-    for c=1:w
+    parfor c=1:w
         for r=1:h
             neighbors = [[r+1, c]; [r, c+1]; [r+1, c+1]];
             for nbr_idx = 1:size(neighbors, 1)
