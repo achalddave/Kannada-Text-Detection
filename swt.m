@@ -10,25 +10,31 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
 
     % start workers if necessary
     if matlabpool('size') == 0
-        matlabpool open 4
+        matlabpool open 8
     end
 
     %% Configuration
     edge_fn = @(img) edge(img, 'canny');
+    IM = imfilter(IM, fspecial('gaussian', 5));
 
     %% CANNY EDGE DETECTION
     E = edge_fn(IM);
+    figure;
+    imshow(E);
     [h,w] = size(E);
     [R,C] = find(E); % Edge locations
 
     %% SWT
-    [FX,FY] = gradient(imfilter(IM, fspecial('disk', 3)));
+    [FX,FY] = gradient(IM);
+    FX = imfilter(FX, fspecial('gaussian', 3));
+    FY = imfilter(FY, fspecial('gaussian', 3));
+
     if ~light_on_dark
         FX = -FX;
         FY = -FY;
     end
 
-    stroke_widths = 255*ones(h,w);
+    stroke_widths = -1.0*ones(h,w);
     MSW = floor(sqrt(h^2+w^2));
     vectors_seen = cell(1,h*w);
 
@@ -93,19 +99,21 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
             PV_R(1,point_idx) = curr_r_round;
             PV_C(1,point_idx) = curr_c_round;
 
-            % Get gradient at new point
-            new_grad_x = FX(curr_r_round, curr_c_round);
-            new_grad_y = FY(curr_r_round, curr_c_round);
+            if (E(curr_r_round, curr_c_round) > 0)
+                % Get gradient at new point
+                new_grad_x = FX(curr_r_round, curr_c_round);
+                new_grad_y = FY(curr_r_round, curr_c_round);
 
-            % Normalize
-            hyp2 = (new_grad_x)^2 + (new_grad_y)^2;
-            c = sqrt(1/hyp2);
-            new_grad_x = new_grad_x * c;
-            new_grad_y = new_grad_y * c;
+                % Normalize
+                hyp2 = (new_grad_x)^2 + (new_grad_y)^2;
+                c = sqrt(1/hyp2);
+                new_grad_x = new_grad_x * c;
+                new_grad_y = new_grad_y * c;
 
-            % End if gradient at new point is in opposite direction
-            if(acos(grad_x*-new_grad_x + grad_y*-new_grad_y) < (pi/2))
-                break;
+                % End if gradient at new point is in opposite direction
+                if(acos(grad_x*-new_grad_x + grad_y*-new_grad_y) < (pi/2))
+                    break;
+                end
             end
         end
 
@@ -123,7 +131,10 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
         % We need to replace all these points with the stroke width.
         for a=1:length(PV_R)
             old_stroke = stroke_widths(PV_R(a), PV_C(a));
+            if (old_stroke == -1) ; old_stroke = Inf ; end
+
             sw = sqrt((start_r - curr_r)^2 + (start_c - curr_c)^2);
+
             stroke_widths(PV_R(a),PV_C(a)) = min(old_stroke, sw);
         end
     end
@@ -194,6 +205,7 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
     graph_mat = sparse(rows, cols, vals, h*w, h*w);
     [num_ccs, cc_labels] = graphconncomp(graph_mat);
 
+    component_vals = cell([1, num_ccs]);
 
     figure;
     imagesc(stroke_widths)
