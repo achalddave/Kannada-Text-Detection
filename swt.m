@@ -19,8 +19,6 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
 
     %% CANNY EDGE DETECTION
     E = edge_fn(IM);
-    figure;
-    imshow(E);
     [h,w] = size(E);
     [R,C] = find(E); % Edge locations
 
@@ -34,7 +32,7 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
         FY = -FY;
     end
 
-    stroke_widths = -1.0*ones(h,w);
+    stroke_widths = Inf*ones(h,w);
     MSW = floor(sqrt(h^2+w^2));
     vectors_seen = cell(1,h*w);
 
@@ -131,7 +129,6 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
         % We need to replace all these points with the stroke width.
         for a=1:length(PV_R)
             old_stroke = stroke_widths(PV_R(a), PV_C(a));
-            if (old_stroke == -1) ; old_stroke = Inf ; end
 
             sw = sqrt((start_r - curr_r)^2 + (start_c - curr_c)^2);
 
@@ -166,7 +163,7 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
         end
     end
 
-    stroke_widths(stroke_widths > 150) = 0;
+    % stroke_widths(stroke_widths > 150) = 0;
 
     % Connected components analysis
     'Creating connected graph'
