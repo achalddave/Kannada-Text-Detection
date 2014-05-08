@@ -10,10 +10,6 @@ function [filtered] = filter_ccs(ccs, stroke_widths)
     row_vals = repmat([1:h]', w, 1);
     col_vals = repmat([1:w], h, 1);
 
-    component_vals = cell([1, num_ccs]);
-    num_vals = zeros([1, num_ccs]);
-
-
     for scc_idx = 1:num_ccs
         % Surprisingly, doing multiple finds is faster than looping over the
         % elements once manually...
