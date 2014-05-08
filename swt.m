@@ -163,8 +163,6 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
         end
     end
 
-    % stroke_widths(stroke_widths > 150) = 0;
-
     % Connected components analysis
     'Creating connected graph'
     rows = [];
@@ -186,7 +184,6 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
                 val2 = stroke_widths(r, c);
                 if (((val1 / val2) <= 3 && (val2 / val1) <= 3) ...
                     || (val1 == 0 && val2 == 0))
-                    idx1 = r + c * h; idx2 = rr + cc * h;
                     rows = [rows raw_idx(r, c)];
                     cols = [cols raw_idx(rr, cc)];
 
