@@ -8,3 +8,7 @@ Reducing the complexity of the Kannada characterset
     can be used for recognition. Very useful, with one caveat: they are doing
     online handwritten character recognition, which means they have a
     separation of strokes purely by time. We need to separate strokes in space.
+
+SWT voting-based color reduction for text detection in natural scene images
+    http://asp.eurasipjournals.com/content/2013/1/95
+
