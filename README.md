@@ -9,7 +9,7 @@ modifications should improve detections on any language, but our goal is to
 improve the accuracy with which Kannada text is detected and to decrease the
 false positive rate, even at the cost of detecting other languages.
 
-## Implmented modifications
+## Implemented modifications
 
 1) Erosion (morphological)
 
