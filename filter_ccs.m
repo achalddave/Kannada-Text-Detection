@@ -1,5 +1,5 @@
 function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
-    VAR_THRESH = 2;
+    VAR_THRESH = 4;
     GRAD_VAR_THRESH = 4;
 
     h = size(ccs, 1)
