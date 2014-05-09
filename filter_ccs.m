@@ -9,8 +9,7 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     ccs = ccs(:);
     filtered = ccs;
     unique_ccs = unique(filtered);
-
-    sprintf('Original num components: %d', size(unique_ccs, 1))
+sprintf('Original num components: %d', size(unique_ccs, 1))
 
     % Remove components with less than 10 elements 
     %
@@ -47,8 +46,6 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
         % % --initialize array of scc gradients------
         % grads = Gdir(curr_cc_indices);
 
-        curr_stroke_widths = stroke_widths(curr_cc_indices);
-
         curr_h = max(rows) - min(rows);
         curr_w = max(cols) - min(cols);
 
@@ -56,16 +53,20 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
         % [nelements,~] = hist(grads);
 
         if (curr_h < 10 || curr_h > 300) || ...
-            ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10) || ...
-            (var(curr_stroke_widths) > VAR_THRESH) % || ...
+            ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10)
             % (var(nelements) > GRAD_VAR_THRESH)
             filtered(curr_cc_indices) = -2;
         else
             % Erode the component and check how many pixels remain
             comp = zeros(h, w);
             comp(curr_cc_indices) = 1;
-            if sum(sum(imerode(comp, strel('disk', MORPH_SIZE)))) < MORPH_THRESH
-                filtered(curr_cc_indices) = -2;
+            comp = imerode(comp, strel('disk', MORPH_SIZE));
+            curr_stroke_widths = stroke_widths(comp == 1);
+
+            if (var(curr_stroke_widths) > VAR_THRESH)
+                filtered(curr_cc_indices) = -3;
+            elseif sum(sum(comp)) < MORPH_THRESH
+                filtered(curr_cc_indices) = -4;
             end
         end
     end
