@@ -6,19 +6,22 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     w = size(ccs, 2)
     ccs = ccs(:);
     filtered = ccs;
+    unique_ccs = unique(filtered);
 
-    sprintf('Original num components %d', size(unique(filtered), 1))
-    % Remove components with less than 5 elements
+    sprintf('Original num components: %d', size(unique_ccs, 1))
+
+    % Remove components with less than 10 elements 
+    %
+    % Note: We can do this because later on, we remove any component that is
+    % less than 10 pixels in height, so this is a good conservative measure.
     tabulated = tabulate(filtered);
     indices = find(tabulated(:, 2) <= 1);
     filtered(ismember(filtered, indices)) = -1;
-    sprintf('Num components now: %d', size(unique(filtered), 1))
 
     unique_ccs = unique(filtered);
     num_ccs = size(unique_ccs, 1);
     coarse_filt = filtered;
     sprintf('Num components after coarse filtering: %d', size(unique_ccs, 1))
-
     % --get gradient directions--------
     [~,Gdir] = imgradient(im_0);
 
@@ -41,7 +44,6 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
 
         % --initialize array of scc gradients------
         grads = Gdir(curr_cc_indices);
-
         curr_stroke_widths = stroke_widths(curr_cc_indices);
 
         curr_h = max(rows) - min(rows);
