@@ -4,8 +4,8 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     MORPH_THRESH = 10;
     MORPH_SIZE = 2;
 
-    h = size(ccs, 1)
-    w = size(ccs, 2)
+    h = size(ccs, 1);
+    w = size(ccs, 2);
     ccs = ccs(:);
     filtered = ccs;
     unique_ccs = unique(filtered);
