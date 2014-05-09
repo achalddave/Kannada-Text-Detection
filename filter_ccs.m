@@ -1,6 +1,6 @@
 function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     VAR_THRESH = 4;
-    GRAD_VAR_THRESH = 4;
+    % GRAD_VAR_THRESH = 4;
 
     h = size(ccs, 1)
     w = size(ccs, 2)
@@ -22,8 +22,9 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     num_ccs = size(unique_ccs, 1);
     coarse_filt = filtered;
     sprintf('Num components after coarse filtering: %d', size(unique_ccs, 1))
-    % --get gradient directions--------
-    [~,Gdir] = imgradient(im_0);
+
+    % % --get gradient directions--------
+    % [~,Gdir] = imgradient(im_0);
 
     % Can index into row_vals, col_vals using a raw index to get the row,
     % column value.
@@ -41,20 +42,21 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
         rows = row_vals(curr_cc_indices);
         cols = col_vals(curr_cc_indices);
 
-        % --initialize array of scc gradients------
-        grads = Gdir(curr_cc_indices);
+        % % --initialize array of scc gradients------
+        % grads = Gdir(curr_cc_indices);
+
         curr_stroke_widths = stroke_widths(curr_cc_indices);
 
         curr_h = max(rows) - min(rows);
         curr_w = max(cols) - min(cols);
 
-        % --Create histogram and get bincount----
-        [nelements,~] = hist(grads);
+        % % --Create histogram and get bincount----
+        % [nelements,~] = hist(grads);
 
         if (curr_h < 10 || curr_h > 300) || ...
             ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10) || ...
-            (var(curr_stroke_widths) > VAR_THRESH) || ...
-            (var(nelements) > GRAD_VAR_THRESH)
+            (var(curr_stroke_widths) > VAR_THRESH) % || ...
+            % (var(nelements) > GRAD_VAR_THRESH)
             filtered(curr_cc_indices) = -2;
         end
     end
