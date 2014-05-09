@@ -9,9 +9,9 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
     end
 
     % start workers if necessary
-    if matlabpool('size') == 0
-        matlabpool open 8
-    end
+    % if matlabpool('size') == 0
+    %     matlabpool open 8
+    % end
 
     %% Configuration
     edge_fn = @(img) edge(img, 'canny');
