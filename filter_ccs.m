@@ -55,7 +55,7 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
             ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10) || ...
             (var(curr_stroke_widths) > VAR_THRESH) || ...
             (var(nelements) > GRAD_VAR_THRESH)
-            filtered(curr_cc_indices) = -1;
+            filtered(curr_cc_indices) = -2;
         end
     end
     filtered = reshape(filtered, h, w);
