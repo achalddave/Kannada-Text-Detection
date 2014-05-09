@@ -14,8 +14,8 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
     % end
 
     %% Configuration
-    edge_fn = @(img) edge(img, 'canny');
-    IM = imfilter(IM, fspecial('gaussian', 5));
+    edge_fn = @(img) edge(img, 'sobel');
+    IM = imfilter(IM, fspecial('gaussian', 3));
 
     %% CANNY EDGE DETECTION
     E = edge_fn(IM);
