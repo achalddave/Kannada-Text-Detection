@@ -22,7 +22,7 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
 
     unique_ccs = unique(filtered);
     num_ccs = size(unique_ccs, 1);
-    coarse_filt = filtered;
+    coarse_filt = reshape(filtered, h, w);
     sprintf('Num components after coarse filtering: %d', size(unique_ccs, 1))
 
     % % --get gradient directions--------
