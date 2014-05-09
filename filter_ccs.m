@@ -38,7 +38,6 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
         if (scc_idx == -1) ; continue ; end
         curr_cc_indices = find(filtered == scc_idx);
 
-        curr_cc_indices(1:min(50, end), 1)';
         rows = row_vals(curr_cc_indices);
         cols = col_vals(curr_cc_indices);
 
