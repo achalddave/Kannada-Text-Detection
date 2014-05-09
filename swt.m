@@ -211,13 +211,6 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
 
     component_vals = cell([1, num_ccs]);
 
-    figure;
-    imagesc(stroke_widths)
-
     ccomps = reshape(cc_labels, h, w);
-
-    figure;
-    imagesc(ccomps)
-
     swt_im = stroke_widths;
 end
