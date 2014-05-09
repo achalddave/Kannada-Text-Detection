@@ -4,7 +4,7 @@ Detecting Kannada in natural scene images
 
 ## Goal
 
-This is a modified version of the Stroke Width Transform[1]. Currently, the
+This is a modified version of the [Stroke Width Transform][1]. Currently, the
 modifications should improve detections on any language, but our goal is to
 improve the accuracy with which Kannada text is detected and to decrease the
 false positive rate, even at the cost of detecting other languages.
