@@ -1,6 +1,8 @@
 function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     VAR_THRESH = 4;
     % GRAD_VAR_THRESH = 4;
+    MORPH_THRESH = 10;
+    MORPH_SIZE = 2;
 
     h = size(ccs, 1)
     w = size(ccs, 2)
@@ -58,6 +60,13 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
             (var(curr_stroke_widths) > VAR_THRESH) % || ...
             % (var(nelements) > GRAD_VAR_THRESH)
             filtered(curr_cc_indices) = -2;
+        else
+            % Erode the component and check how many pixels remain
+            comp = zeros(h, w);
+            comp(curr_cc_indices) = 1;
+            if sum(sum(imerode(comp, strel('disk', MORPH_SIZE)))) < MORPH_THRESH
+                filtered(curr_cc_indices) = -2;
+            end
         end
     end
     filtered = reshape(filtered, h, w);
