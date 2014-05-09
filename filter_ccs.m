@@ -1,8 +1,8 @@
 function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
-    VAR_THRESH = 4;
+    VAR_THRESH = 10;
     % GRAD_VAR_THRESH = 4;
     MORPH_THRESH = 10;
-    MORPH_SIZE = 2;
+    MORPH_SIZE = 3;
 
     h = size(ccs, 1);
     w = size(ccs, 2);
@@ -16,7 +16,7 @@ sprintf('Original num components: %d', size(unique_ccs, 1))
     % Note: We can do this because later on, we remove any component that is
     % less than 10 pixels in height, so this is a good conservative measure.
     tabulated = tabulate(filtered);
-    indices = find(tabulated(:, 2) <= 1);
+    indices = find(tabulated(:, 2) <= 10);
     filtered(ismember(filtered, indices)) = -1;
 
     unique_ccs = unique(filtered);
