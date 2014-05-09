@@ -127,13 +127,9 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
 
         % So now PV_R and PV_C contain all points visited along a gradient
         % We need to replace all these points with the stroke width.
-        for a=1:length(PV_R)
-            old_stroke = stroke_widths(PV_R(a), PV_C(a));
-
-            sw = sqrt((start_r - curr_r)^2 + (start_c - curr_c)^2);
-
-            stroke_widths(PV_R(a),PV_C(a)) = min(old_stroke, sw);
-        end
+        sw = sqrt((start_r - curr_r)^2 + (start_c - curr_c)^2);
+        indices = PV_R + (PV_C - 1)*h;
+        stroke_widths(indices) = min(sw, stroke_widths(indices));
     end
 
     % Remove trailing empty cells
@@ -147,20 +143,13 @@ function [swt_im, ccomps] = swt(IM, light_on_dark)
         cols = vectors_seen{j}{2};
 
         % Create array of stroke widths at vector points
-        widths = zeros(1,length(rows));
-        for k=1:length(rows)
-            widths(k) = stroke_widths(rows(k),cols(k));
-        end
+        widths = stroke_widths(rows + (cols - 1) * h);
 
         % Find median along vector
         med = median(widths);
 
         % Replace entries larger than median with median
-        for k=1:length(rows)
-            if(widths(k) > med)
-                stroke_widths(rows(k),cols(k)) = med;
-            end
-        end
+        stroke_widths(rows + (cols - 1)*h) = min(widths, med);
     end
 
     % Connected components analysis
