@@ -1,4 +1,4 @@
-function [filtered] = filter_ccs(ccs, stroke_widths, im_0)
+function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     VAR_THRESH = 2;
     GRAD_VAR_THRESH = 4;
 
@@ -16,6 +16,8 @@ function [filtered] = filter_ccs(ccs, stroke_widths, im_0)
 
     unique_ccs = unique(filtered);
     num_ccs = size(unique_ccs, 1);
+    coarse_filt = filtered;
+    sprintf('Num components after coarse filtering: %d', size(unique_ccs, 1))
 
     % --get gradient directions--------
     [~,Gdir] = imgradient(im_0);
