@@ -1,4 +1,4 @@
-function [swt_im, ccomps] = swt(IM, light_on_dark)
+function [swt_im, ccomps, E] = swt(IM, light_on_dark)
     % TODO:
     %   * Thresholding connected components
     %   * Try both light on dark, dark on light, and pick best
