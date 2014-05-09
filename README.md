@@ -11,6 +11,8 @@ false positive rate, even at the cost of detecting other languages.
 
 ## Implemented modifications
 
+Modifications that we've implemented so far.
+
 ### Erosion (morphological)
 
 Morphological erosion is used for two improvements: removal of small non-axis
