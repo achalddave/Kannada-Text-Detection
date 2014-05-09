@@ -9,7 +9,7 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
     ccs = ccs(:);
     filtered = ccs;
     unique_ccs = unique(filtered);
-sprintf('Original num components: %d', size(unique_ccs, 1))
+    sprintf('Original num components: %d', size(unique_ccs, 1))
 
     % Remove components with less than 10 elements 
     %
