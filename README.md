@@ -44,14 +44,33 @@ the removal of very small components using typical MATLAB (or any other
 languages') functions, reducing the components to thousands before doing
 further checks.
 
-### Proposed
+## Proposed modifications
 
-In progress
+### Gradient histograms
+
+Kannada characters are especially circular in nature, a feature that we should
+be able to exploit in detection. We attempted to look at a ray histogram of
+gradients for each connected component, but found it unstable in our first few
+tries.
+
+### Surrounding text voting
+
+Text tends to be surrounded by other text. Using a dual threshold, we can
+eliminate components that are obviously incorrect (by some measure), and vote
+on components that we are less certain for by looking at their surroundings (a
+la the Canny edge detector).
+
+### Color quantization
+
+[Ikica and Peer] [3] discuss a modified color reduction method using SWT
+voting. It may be possible to invert this and use color reduction to vote on
+SWT components,, but we have not looked into this much.
 
 ### Related
 
-* [DetectText] [2] is an SWT implementation in C++, and was invaluable as
+* [DetectText] [3] is an SWT implementation in C++, and was invaluable as
   a reference implementation.
 
 [1]: http://research.microsoft.com/pubs/149305/1509.pdf
-[2]: https://github.com/achalddave/Kannada-Text-Detection
+[2]: http://asp.eurasipjournals.com/content/2013/1/95
+[3]: https://github.com/achalddave/Kannada-Text-Detection
