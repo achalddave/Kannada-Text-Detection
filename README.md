@@ -1,6 +1,9 @@
-# EE225B (Digital Image Processing) Final Project
+# Kannada Text Detection
 
-Detecting Kannada in natural scene images
+Detecting Kannada in natural scene images.
+[Gautam](https://github.com/gautamgunjala/) and I are working on this as our
+final project for
+[EE225B: Digital Image Processing](https://inst.eecs.berkeley.edu/~ee225b/).
 
 ## Goal
 
