@@ -45,5 +45,10 @@ further checks.
 
 In progress
 
+### Related
+
+* [DetectText] [2] is an SWT implementation in C++, and was invaluable as
+  a reference implementation.
 
 [1]: http://research.microsoft.com/pubs/149305/1509.pdf
+[2]: https://github.com/achalddave/Kannada-Text-Detection
