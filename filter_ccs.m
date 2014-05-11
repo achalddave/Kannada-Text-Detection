@@ -1,36 +1,69 @@
-function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
-    VAR_THRESH = 10;
-    % GRAD_VAR_THRESH = 4;
-    MORPH_THRESH = 10;
+function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_ccs(ccs, stroke_widths, im_0, light_on_dark)
+% Filters the connected components returned by SWT.
+%
+% Five criteria are considered:
+%
+% [1] The number of pixels in a connected component: If this number is less
+% than SIZE_THRESH, then the connected component is reassigned to a value
+% of (-1) and considered GUARANTEED NOT TEXT. This constitutes coarse
+% filtering and the result of this operation alone is returned in
+% coarse_filt.
+%
+% [2] The height and aspect ratio of a connected component: If the height
+% is less than 10 pixels or larger than 300 pixels, or if the aspect ratio
+% is larger than 10 or less than 0.1, then the connected component is
+% reassigned to a value of (-2) and considered GUARANTEED NOT TEXT.
+%
+% [3] The variance of stroke widths: If this number is greater than
+% GNT_VAR_THRESH, then the componenet is reassigned to a value of (-3)
+% and considered GUARANTEED NOT TEXT.
+
+%
+% [4] <<<<<ACHAL EXPLAIN WHAT MORPH DOES>>>>>>>
+%
+% [5] Error between BW component and ...
+
+    SIZE_THRESH = 10;
+
+    GNT_VAR_THRESH = 20;
+    GT_VAR_THRESH = 5;
+
+    GNT_MORPH_THRESH = 5;
     MORPH_SIZE = 3;
+
+    GNT_ERR_THRESH = 1.5;
+    GT_ERR_THRESH = 0.3;
 
     h = size(ccs, 1);
     w = size(ccs, 2);
-    ccs = ccs(:);
-    filtered = ccs;
-    unique_ccs = unique(filtered);
+    ccs_mod = ccs(:);
+    gnt_filtered = ccs_mod;
+    unique_ccs = unique(gnt_filtered);
     sprintf('Original num components: %d', size(unique_ccs, 1))
 
-    % Remove components with less than 10 elements 
+    % Remove components with less than 10 elements
     %
     % Note: We can do this because later on, we remove any component that is
     % less than 10 pixels in height, so this is a good conservative measure.
-    tabulated = tabulate(filtered);
-    indices = find(tabulated(:, 2) <= 10);
-    filtered(ismember(filtered, indices)) = -1;
+    tabulated = tabulate(gnt_filtered);
+    indices = find(tabulated(:, 2) <= SIZE_THRESH);
+    gnt_filtered(ismember(gnt_filtered, indices)) = -1;
 
-    unique_ccs = unique(filtered);
+    unique_ccs = unique(gnt_filtered);
     num_ccs = size(unique_ccs, 1);
-    coarse_filt = reshape(filtered, h, w);
+    coarse_filt = reshape(gnt_filtered, h, w);
     sprintf('Num components after coarse filtering: %d', size(unique_ccs, 1))
-
-    % % --get gradient directions--------
-    % [~,Gdir] = imgradient(im_0);
 
     % Can index into row_vals, col_vals using a raw index to get the row,
     % column value.
     row_vals = repmat([1:h]', w, 1);
     col_vals = repmat([1:w], h, 1);
+
+    mt = (gnt_filtered > 0);
+    gt = (gnt_filtered > 0);
+
+    m_comp_idxs = [];
+    g_comp_idxs = [];
 
     'Filtering components: This can take a couple minutes...'
     for i = 1:num_ccs
@@ -38,37 +71,92 @@ function [coarse_filt, filtered] = filter_ccs(ccs, stroke_widths, im_0)
         % elements once manually...
         scc_idx = unique_ccs(i);
         if (scc_idx == -1) ; continue ; end
-        curr_cc_indices = find(filtered == scc_idx);
+        curr_cc_indices = find(gnt_filtered == scc_idx);
 
         rows = row_vals(curr_cc_indices);
         cols = col_vals(curr_cc_indices);
 
-        % % --initialize array of scc gradients------
-        % grads = Gdir(curr_cc_indices);
-
         curr_h = max(rows) - min(rows);
         curr_w = max(cols) - min(cols);
 
-        % % --Create histogram and get bincount----
-        % [nelements,~] = hist(grads);
+        window_cc = ccs(min(rows):max(rows),min(cols):max(cols));
+        window_0 = im_0(min(rows):max(rows),min(cols):max(cols));
 
+        % Check height/aspect ratio
         if (curr_h < 10 || curr_h > 300) || ...
             ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10)
-            % (var(nelements) > GRAD_VAR_THRESH)
-            filtered(curr_cc_indices) = -2;
-        else
-            % Erode the component and check how many pixels remain
-            comp = zeros(h, w);
-            comp(curr_cc_indices) = 1;
-            comp = imerode(comp, strel('disk', MORPH_SIZE));
-            curr_stroke_widths = stroke_widths(comp == 1);
+            gnt_filtered(curr_cc_indices) = -2;
+            gt(curr_cc_indices) = 0;
+            mt(curr_cc_indices) = 0;
+            continue;
+        end
 
-            if (var(curr_stroke_widths) > VAR_THRESH)
-                filtered(curr_cc_indices) = -3;
-            elseif sum(sum(comp)) < MORPH_THRESH
-                filtered(curr_cc_indices) = -4;
+        % -----------------------------------------------------------------
+        % Get window of current cc and convert it to a black and white
+        % image. Get the corresponding window of the original image and
+        % convert it to a black and white image. Compute the error between
+        % these two images. If the image was text, we expect both images
+        % to be approximately binary, and thus, the error should be low.
+        lv = graythresh(window_cc);
+        window_cc = im2bw(window_cc,lv);
+
+        lv = graythresh(window_0);
+        window_0 = im2bw(window_0,lv);
+        if(light_on_dark == 0)
+            window_0 = 1-window_0;
+        end
+
+        err = sqrt(mean((window_cc - window_0).^2));
+
+        if (err > GNT_ERR_THRESH)
+            gnt_filtered(curr_cc_indices) = -5;
+            gt(curr_cc_indices) = 0;
+            mt(curr_cc_indices) = 0;
+            continue;
+        elseif (err < GT_ERR_THRESH)
+            mt(curr_cc_indices) = 0;
+        else
+            gt(curr_cc_indices) = 0;
+        end
+        % -----------------------------------------------------------------
+
+
+        % Erode the component and check how many pixels remain
+        comp = zeros(h, w);
+        comp(curr_cc_indices) = 1;
+        comp = imerode(comp, strel('disk', MORPH_SIZE));
+        curr_stroke_widths = stroke_widths(comp == 1);
+
+        if (var(curr_stroke_widths) > GNT_VAR_THRESH)
+            gnt_filtered(curr_cc_indices) = -3;
+            gt(curr_cc_indices) = 0;
+            mt(curr_cc_indices) = 0;
+            continue;
+        elseif (var(curr_stroke_widths) < GT_VAR_THRESH)
+            gt(curr_cc_indices) = 1;
+            mt(curr_cc_indices) = 0;
+        else
+            if(gt(curr_cc_indices) == 0)
+                mt(curr_cc_indices) = 1;
             end
         end
+
+        if (sum(sum(comp)) < GNT_MORPH_THRESH)
+            gnt_filtered(curr_cc_indices) = -4;
+            gt(curr_cc_indices) = 0;
+            mt(curr_cc_indices) = 0;
+            continue;
+        end
+
+        if (gt(curr_cc_indices) == 1)
+            g_comp_idxs = [g_comp_idxs scc_idx];
+        end
+        if (mt(curr_cc_indices) == 1)
+            m_comp_idxs = [m_comp_idxs scc_idx];
+        end
+
     end
-    filtered = reshape(filtered, h, w);
+    gnt_filtered = reshape(gnt_filtered, h, w);
+    gt = reshape(gt,h,w);
+    mt = reshape(mt,h,w);
 end
