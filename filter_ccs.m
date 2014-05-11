@@ -29,7 +29,8 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
     GT_VAR_THRESH = 10;
     VAR_MORPH_SIZE = 2;
 
-    GNT_MORPH_THRESH = 10;
+    GNT_MORPH_THRESH = 5;
+    GT_MORPH_SIZE = 10;
     MORPH_SIZE = 4;
 
     GNT_ERR_THRESH = 0.1;
@@ -166,12 +167,16 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
             mt(curr_cc_indices) = 1;
         end
 
-        if (sum(sum(comp)) < GNT_MORPH_THRESH)
+        sum_comp = sum(sum(comp));
+        if (sum_comp < GNT_MORPH_THRESH)
             % Definitely not text, moving along...
             gnt_filtered(curr_cc_indices) = -4;
             gt(curr_cc_indices) = 0;
             mt(curr_cc_indices) = 0;
             continue;
+        elseif (sum_comp < GT_MORPH_SIZE)
+            gt(curr_cc_indices) = 0;
+            mt(curr_cc_indices) = 1;
         end
 
         if (gt(curr_cc_indices) == 1)
