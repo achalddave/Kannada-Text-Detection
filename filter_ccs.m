@@ -115,8 +115,12 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
             mt(curr_cc_indices) = 0;
             continue;
         elseif (err < GT_ERR_THRESH)
+            % Definitely text according to this test, but check other tests.
             mt(curr_cc_indices) = 0;
+            gt(curr_cc_indices) = 1;
         else
+            % May be text according to this test, but check other tests.
+            mt(curr_cc_indices) = 1;
             gt(curr_cc_indices) = 0;
         end
         % -----------------------------------------------------------------
@@ -131,19 +135,24 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
 
         if (var(curr_stroke_widths) > GNT_VAR_THRESH)
             gnt_filtered(curr_cc_indices) = -3;
+            % Definitely not text, moving along...
             gt(curr_cc_indices) = 0;
             mt(curr_cc_indices) = 0;
             continue;
         elseif (var(curr_stroke_widths) < GT_VAR_THRESH)
-            gt(curr_cc_indices) = 1;
-            mt(curr_cc_indices) = 0;
-        else
-            if(gt(curr_cc_indices) == 0)
-                mt(curr_cc_indices) = 1;
+            % Definitely text according to this test, but check other tests.
+            if (gt(curr_cc_indices) == 1)
+                gt(curr_cc_indices) = 1;
+                mt(curr_cc_indices) = 0;
             end
+        else
+            % May be text according to this test, but check other tests.
+            gt(curr_cc_indices) = 0;
+            mt(curr_cc_indices) = 1;
         end
 
         if (sum(sum(comp)) < GNT_MORPH_THRESH)
+            % Definitely not text, moving along...
             gnt_filtered(curr_cc_indices) = -4;
             gt(curr_cc_indices) = 0;
             mt(curr_cc_indices) = 0;
@@ -152,8 +161,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
 
         if (gt(curr_cc_indices) == 1)
             g_comp_idxs = [g_comp_idxs scc_idx];
-        end
-        if (mt(curr_cc_indices) == 1)
+        elseif (mt(curr_cc_indices) == 1)
             m_comp_idxs = [m_comp_idxs scc_idx];
         end
 
