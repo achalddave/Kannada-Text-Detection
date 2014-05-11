@@ -27,6 +27,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
 
     GNT_VAR_THRESH = 20;
     GT_VAR_THRESH = 5;
+    VAR_MORPH_SIZE = 2;
 
     GNT_MORPH_THRESH = 3;
     MORPH_SIZE = 4;
@@ -124,8 +125,9 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
         % Erode the component and check how many pixels remain
         comp = zeros(h, w);
         comp(curr_cc_indices) = 1;
+        comp_var = imerode(comp, strel('disk', VAR_MORPH_SIZE));
         comp = imerode(comp, strel('disk', MORPH_SIZE));
-        curr_stroke_widths = stroke_widths(comp == 1);
+        curr_stroke_widths = stroke_widths(comp_var == 1);
 
         if (var(curr_stroke_widths) > GNT_VAR_THRESH)
             gnt_filtered(curr_cc_indices) = -3;
