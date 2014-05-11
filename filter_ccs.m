@@ -122,7 +122,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
             window_0 = 1-window_0;
         end
 
-        err = sqrt(mean((window_cc - window_0).^2));
+        err = sqrt(mean((window_cc - window_0).^2) / (curr_h*curr_w));
 
         if (err > GNT_ERR_THRESH)
             gnt_filtered(curr_cc_indices) = -5;
