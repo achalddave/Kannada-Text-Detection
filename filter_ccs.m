@@ -66,6 +66,20 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
     m_comp_idxs = [];
     g_comp_idxs = [];
 
+    % Walk through each component, and filter it using a number of tests.
+    %   XXX: This code is currently a mess and needs to be cleaned up.
+    %
+    % The flow is so:
+    %   Each test classifies a component as "maybe text", "guaranteed text",
+    %   or "guaranteed not text."
+    %
+    %   If any test raises "guaranteed not text," we immediately stop and give
+    %   up on this component.
+    %
+    %   If a test raises "guaranteed text" or "maybe text," we continue to run
+    %   other tests. Iff all tests say we are "guaranteed text," this component
+    %   is counted as text; otherwise, it is counted as "may be text."
+
     'Filtering components: This can take a couple minutes...'
     for i = 1:num_ccs
         % Surprisingly, doing multiple finds is faster than looping over the
@@ -86,6 +100,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
         % Check height/aspect ratio
         if (curr_h < 10 || curr_h > 300) || ...
             ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10)
+            % Definitely not text, moving along...
             gnt_filtered(curr_cc_indices) = -2;
             gt(curr_cc_indices) = 0;
             mt(curr_cc_indices) = 0;
