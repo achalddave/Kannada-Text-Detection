@@ -14,9 +14,9 @@ col_vals = repmat([1:w], h, 1);
 
 % Construct sum of Gaussians
 cc_mask = double(gt > 0);
-prob = imfilter(cc_mask, fspecial('gaussian', round(h / 3), 100));
+prob = imfilter(cc_mask, fspecial('gaussian', round(h / 3), 200));
 
-prob = prob / sum(sum(prob));
+prob = prob / max(max(prob));
 
 for i = 1:length(m_comp_idxs)
     scc_idx = m_comp_idxs(i);
