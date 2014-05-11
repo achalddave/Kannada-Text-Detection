@@ -26,14 +26,14 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
     SIZE_THRESH = 10;
 
     GNT_VAR_THRESH = 20;
-    GT_VAR_THRESH = 5;
+    GT_VAR_THRESH = 10;
     VAR_MORPH_SIZE = 2;
 
-    GNT_MORPH_THRESH = 3;
+    GNT_MORPH_THRESH = 10;
     MORPH_SIZE = 4;
 
-    GNT_ERR_THRESH = 1.5;
-    GT_ERR_THRESH = 1.0;
+    GNT_ERR_THRESH = 0.1;
+    GT_ERR_THRESH = 0.05;
 
     h = size(ccs, 1);
     w = size(ccs, 2);
