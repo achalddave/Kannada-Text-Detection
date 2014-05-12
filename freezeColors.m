@@ -271,5 +271,3 @@ if nargs == 2,
             'Unrecognized option (%s). Only ''nancolor'' is valid.',args{end-1})
     end
 end
-
-
