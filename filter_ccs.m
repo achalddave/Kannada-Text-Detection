@@ -30,6 +30,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
     VAR_MORPH_SIZE = 2;
 
     GNT_MORPH_THRESH = 5;
+    GT_MORPH_THRESH = 5;
     GT_MORPH_SIZE = 10;
     MORPH_SIZE = 4;
 
@@ -146,6 +147,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
         comp = zeros(h, w);
         comp(curr_cc_indices) = 1;
         comp_var = imerode(comp, strel('disk', VAR_MORPH_SIZE));
+        comp_gt  = imerode(comp, strel('disk', GT_MORPH_SIZE));
         comp = imerode(comp, strel('disk', MORPH_SIZE));
         curr_stroke_widths = stroke_widths(comp_var == 1);
 
@@ -168,13 +170,13 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
         end
 
         sum_comp = sum(sum(comp));
-        if (sum_comp < GNT_MORPH_THRESH)
+        if (sum(sum(comp)) < GNT_MORPH_THRESH)
             % Definitely not text, moving along...
             gnt_filtered(curr_cc_indices) = -4;
             gt(curr_cc_indices) = 0;
             mt(curr_cc_indices) = 0;
             continue;
-        elseif (sum_comp < GT_MORPH_SIZE)
+        elseif (sum(sum(comp_gt)) < GT_MORPH_THRESH)
             gt(curr_cc_indices) = 0;
             mt(curr_cc_indices) = 1;
         end
