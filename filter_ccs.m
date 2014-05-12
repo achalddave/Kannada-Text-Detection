@@ -30,12 +30,12 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
     VAR_MORPH_SIZE = 2;
 
     GNT_MORPH_THRESH = 5;
-    GT_MORPH_THRESH = 5;
-    GT_MORPH_SIZE = 10;
-    MORPH_SIZE = 4;
+    GT_MORPH_THRESH = 3;
+    GT_MORPH_SIZE = 3;
+    MORPH_SIZE = 1;
 
-    GNT_ERR_THRESH = 0.1;
-    GT_ERR_THRESH = 0.05;
+    GNT_ERR_THRESH = 1;
+    GT_ERR_THRESH = 0.5;
 
     h = size(ccs, 1);
     w = size(ccs, 2);
@@ -100,7 +100,7 @@ function [coarse_filt, gnt_filtered, gt, mt, g_comp_idxs, m_comp_idxs] = filter_
         window_0 = im_0(min(rows):max(rows),min(cols):max(cols));
 
         % Check height/aspect ratio
-        if (curr_h < 10 || curr_h > 300) || ...
+        if (curr_h < 10 || curr_h > h/2) || ...
             ((curr_h / curr_w) < 0.1 || (curr_h / curr_w) > 10)
             % Definitely not text, moving along...
             gnt_filtered(curr_cc_indices) = -2;
