@@ -37,7 +37,7 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
     vectors_seen = cell(1,h*w);
 
     % TODO: can this be parallelized?
-    'Extracting raw stroke widths'
+    'Extracting raw stroke widths';
     v = 1;
     jump = 0.05;
     for i=1:length(R)
@@ -136,7 +136,7 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
     vectors_seen = vectors_seen(~cellfun('isempty', vectors_seen));
 
     % Replace outlier values with median along vector
-    'Replacing outliers with medians'
+    'Replacing outliers with medians';
     for j=1:length(vectors_seen)
         % Access vectors visited from cell array
         rows = vectors_seen{j}{1};
@@ -153,7 +153,7 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
     end
 
     % Connected components analysis
-    'Creating connected graph'
+    'Creating connected graph';
 
     % Note: This next part is a bit tricky for speed.
     % /----------\
@@ -205,7 +205,7 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
 
     vals = ones(1, size(conn_src, 2));
 
-    'Calculating connected components'
+    'Calculating connected components';
     graph_mat = sparse(conn_src, conn_dst, vals, h*w, h*w);
     [num_ccs, cc_labels] = graphconncomp(graph_mat);
 
