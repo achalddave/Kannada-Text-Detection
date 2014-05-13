@@ -1,4 +1,4 @@
-function [ OUT ] = data_read( IM, TXT )
+function [ OUT ] = data_read( TXT )
 % Returns a cell array of images of individual characters given an input
 % image and bounding box data text file
 
@@ -17,7 +17,6 @@ end
 fclose(fid);
 
 %% Scan each line and extract numbers
-
 for i = 1:length(OUT)
     text = OUT{i};
     colons = regexp(text,':');
@@ -39,6 +38,6 @@ for i = 1:length(OUT)
         char_indx = char_indx + 1;
     end
 
-    OUT{i} = IM(min(row_coords):max(row_coords), ...
-        min(col_coords):max(col_coords));
+    OUT{i} = [min(row_coords),max(row_coords), ...
+        min(col_coords),max(col_coords)];
 end
