@@ -1,0 +1,324 @@
+% EE225B Final Project
+\documentclass[11pt]{article}
+
+\usepackage[margin={2cm,2cm}]{geometry}
+\usepackage{multicol}
+\usepackage{parskip}
+\usepackage{graphicx}
+\usepackage{capt-of}
+\setlength{\columnsep}{1cm}
+
+\setlength{\parindent}{0pt}
+
+\title{\textbf{Improved Text Detection\\ in Natural Scene Images}}
+\author{Achal~Dave,~Vaishaal~Shankar,~Gautam~Gunjala\thanks{Not in CS189, but participated in the project}}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{multicols}{2}
+
+\section{Abstract}
+
+\textit{We present several modifications to the Stroke Width Transform (SWT), a
+local image operation that uses geometric characteristics of natural scene
+images to identify text within them. We add several novel checks that make the
+text detection algorithm more robust, lowering the rate of false positives
+among image components flagged with negligible detriment to its running time
+with respect to existing implementations. Extensive testing performed on images
+from Bangalore, Karnataka, indicates that the improved algorithm can be
+reliably used to detect and extract both English and Kannada text from the
+images.}
+
+\section{Introduction}
+Text detection in natural scene images is an important application of image
+processing and computer vision. With the exponential growth of images on the
+internet, it's become more and more interesting to find ways to classify and
+understand images automatically. Text is a significant piece of the solution,
+as it contains key information about both the context and location of an image.
+Unfortunately, most past text detection and recognition work focuses on a few
+languages, such as English (and others with a Latin script) and Chinese. In
+this paper, we focus on Kannada detection, although our modifications
+generalize to most languages. In future work, we hope to work on recognizing
+Kannada characters.
+
+We present an algorithm based on the Stroke Width Transform that provides
+improved text detection in natural images. We implement two distinct
+classifiers that utilize the output of the Stroke Width Transform (without any
+thresholding) along with features extracted by our algorithm, and compare their
+results qualitatively. Our original objective was to improve text detection on
+the Kannada language, although our modifications generalized to most languages.
+
+Unfortunately, due to the nature of Kannada, a language in which consonants can
+be joined arbitrarily, it is difficult to use many typical algorithms that rely
+on character-based classifiers for detection and recognition. We are unaware of
+any published Kannada text that performs even reasonably well, which makes the
+problem of detection much more interesting. In future work, we hope to revisit
+recognition using the output of our detection algorithm as presented in this
+paper.
+
+\section{Dataset}
+
+We perform our algorithms on the Chars74k dataset gathered by Microsoft
+Research. The dataset consists of natural images with Kannada and English text.
+As we originally were focusing on Kannada text, we were constrained to a small
+dataset; specifically, Chars74k is the only publicly available dataset we were
+able to find that contains reasonably labeled characters in natural images.
+Unfortunately, the dataset does not guarantee that all occurrences of text are
+labelled, making it difficult to quantize error precisely.
+
+\section{Feature Extraction}
+
+Our algorithm begins with a modified version of the Stroke Width Transform that
+extracts connected components in the manner described in the next section. We
+then discuss additional operations that we perform on each extracted component
+that help to better characterize the component as text or not.
+
+\subsection{Stroke Width Transform}
+
+The Stroke Width Transform (SWT) relies on the key insight that text in natural
+images consists of lines of generally uniform thickness. Using this assumption,
+it is possible to extract components whose stroke widths, defined as the
+shortest distance between edges, are nearly uniform. A detailed explanation of
+the transform is provided in the original paper; we provide a brief overview
+here.
+
+The Stroke Width Transform works as follows:
+
+\begin{itemize}
+
+  \item Detect all edges in an image, using a high pass filter (Sobel, Prewitt)
+        or edge detection algorithm (Canny). It is crucial that in this step, each
+        point in the image is classified as an edge or not an edge.
+
+  \item Create a new image ($I_{swt}$) of the same size as the original. If a pixel
+        is found to be text, the corresponding pixel in this new image will hold the
+        stroke width of the line containing it. Initialize each value in this new
+        image to value +Inf
+
+  \item Consider only the subset of edge pixels in the original image. For each
+        point in this subset:
+        \begin{itemize}
+            \item Walk in the direction of its gradient (calculated with
+                  respect to the original image)
+
+            \item Continue until another edge pixel with a gradient in the
+                  opposite direction is encountered, and then terminate.
+
+            \item Set \texttt{curr\_width} to the Euclidean distance between the
+                 start and end pixel.
+
+            \item For each pixel \texttt{(x,y)} walked over in this process, set the
+                  stroke width to be $I_{swt}(x,y) =$
+                  \texttt{min(}$I_{swt}(x,y)$\texttt{, curr\_width)}
+          \end{itemize}
+
+    \item Next, we look for connected components in $I_{swt}$. For each pair
+    of neighboring pixels, we create an edge if the stroke widths are off by a
+    factor of 3.
+
+    \item Finally, the SWT thresholds these components on the variance of the
+    stroke widths, and the dimensions of the components.
+
+\end{itemize}
+
+{
+\centering
+\includegraphics[width=0.5\textwidth]{assets/swt_stroke}
+\captionof{figure}{Image taken from the original SWT paper. (a) An example of a
+stroke. (b) \textbf{p} is a pixel in the edge image; by walking along the
+gradient, we encounter \textbf{q}. (c) all pixels on the path are assigned the
+same stroke width.}
+}
+
+\subsection{Modifications}
+
+Although the features described in the Stroke Width Transform are useful, they
+do not provide enough information to easily distinguish text components from
+non-text components. The SWT, as it is currently implemented, ignores a number
+of key aspects of text components, resulting in many noisy detections. In the
+following sections, we discuss modifications to the Stroke Width Transform that
+attempt to overcome these issues. Although these added procedures result in
+additional running time – for example, one must be performed serially - the
+change is negligible and the improvement in the accuracy of the results is
+worth the additional time taken.
+
+\subsection{Morphological Erosion}
+
+The SWT does basic thresholding based on the bounding box of each component.
+However, small, noisy components are still allowed. Components that consist of
+thin diagonal lines, for example, display proper bounding boxes but are
+generally undesirable.
+
+{
+\centering
+\includegraphics[width=0.5\textwidth]{assets/swt_diag}
+\captionof{figure}{Diagonal lines detected from SWT algorithm}
+\label{fig:swt_diag}
+}
+
+For example, Figure~\ref{fig:swt_diag} demonstrates such diagonal lines which
+may be identified as parts of text by the original SWT algorithm.  To account
+for such instances, we thin each component using a morphological erosion, and
+remove any component that disappears following the erosion. As
+Figure~\ref{fig:swt_diag_morphed} shows, the morphological erosion technique
+used in our modification of the SWT was able to successfully dismiss the
+diagonal lines as not text.
+
+{
+\centering
+\includegraphics[width=0.5\textwidth]{assets/swt_diag_morphed}
+\captionof{figure}{Morphological erosion applied to Figure~\ref{fig:swt_diag}}
+\label{fig:swt_diag_morphed}
+}
+
+\subsection{Quantization error}
+
+Components containing text tend to have smooth surroundings. In natural scene
+images, we tend to see dark text on a light background or vice versa, with a
+two-color scheme, be it black and white or some other combination. On the other
+hand, most noisy components are surrounded by pixels with high variance. To
+exploit this fact, we convert the pixels in each component to a binary image,
+such that we have only the component on a plain background of opposite color.
+We then extract the corresponding window from the original image and binarize
+that. We claim that if the component is text, then the two binary images should
+have a relatively low root mean squared error (RMS) normalized by window size.
+When this error is high, the component is unlikely to be text. This further
+filtering of components by quantization also contributes to the differences
+between the two images in the previous subsection.
+
+\section{Classification}
+
+We implemented two separate methods for classifying the components output by
+the SWT: thresholding and decision trees, and compare their results.
+
+\subsection{Threshold and Vote}
+
+Our first method follows the Stroke Width Transform in hand tuning thresholds
+for each feature. While our features improve the performance of detections over
+the raw SWT with just this thresholding, we still see a number of false
+positives in various parts of the image. Due to the instability of these
+thresholds, attempting to remove these false positives by tighter values
+results in missing text detections.
+
+To overcome the instability of the thresholds, we turn to a hysteresis method
+similar to that used by the Canny edge detector. We maintain two sets of
+thresholds: a strict threshold that only admits text, and a loose threshold
+that admits many components, whether text or not.
+
+We note that text in natural images is often surrounded by other text, and we
+rarely see singleton characters floating in an image. Consequently, we use a
+method similar to kernel density estimation to calculate the probability of
+text located in a certain region in the image. We center Gaussians at the
+centers of the bounding boxes of components that pass the strict threshold, and
+create a probability map containing the likelihoods of text at various
+locations in the image.
+
+{ \centering
+\includegraphics[width=0.5\textwidth]{assets/18th_cross}
+\captionof{figure}{Grayscale image of a sign}
+\label{fig:18th_cross} 
+}
+
+We use these probabilities to vote on components that only passed the loose
+threshold. Note that in the probability map, we see areas outside of the text
+location that have peaks, as it is still difficult to tune the strict threshold
+well. Due to these troubles, despite the improvements over the Stroke Width
+Transform, we move on to a decision tree based classifier.
+
+\subsection{Decision Trees}
+In order to avoid issues with tuning, we turn to a simple decision tree based
+classifier. Decision trees are well suited to this problem for two reasons: the
+problem is definitely not linearly separable, as these features simply are not
+intricate enough, and because they can easily model different relationships
+between features based on thresholds. We attempted to train an SVM on a small
+set of data as part of a quick experiment, but found that overall decision
+trees were both theoretically more sound and performed better.
+
+{ \centering
+\includegraphics[height=0.5\textwidth]{assets/bangalore}
+\captionof{figure}{Street sign with text.}
+\label{fig:bangalore} }
+
+{ \centering
+\includegraphics[width=0.5\textwidth]{assets/bangalore_missed}
+\captionof{figure}{Components classified by a decision tree as text. Although
+the number of false positives is low, we still miss one or two text
+detections.}
+\label{fig:bangalore_missed} }
+
+We use the same features from earlier, without the probability density map, as
+deriving the probability densities requires a threshold in the first place.
+Specifically, our feature vector contains the following: component’s raw
+bounding box size, component's bounding box size proportional to the image, the
+mean and variance of the stroke width, the quantization error, and the number
+of pixels left after a morphological erosion.
+
+We extracted 84 labelled images with text, containing approximately 1000 text
+components, and 5000 non-text components, all of which pass very coarse
+thresholds from the Stroke Width Transform (precisely, ones that are more than
+1 pixel wide and less than half the size of the entire image). Using 10-fold
+cross validation, we were able to get an average accuracy of approximately 17\%.
+
+{
+\centering
+\includegraphics[width=0.4\textwidth]{assets/green}
+\captionof{figure}{Another street sign.}
+\label{fig:green}
+}
+
+{
+\centering
+\includegraphics[height=0.3\textwidth]{assets/green_rejected}
+\captionof{figure}{Components rejected by our decision tree.}
+\label{fig:green_rejected}
+}
+
+Note, however, that these results are preliminary in two important ways. First,
+the dataset does not guarantee that all text is labelled, just that all
+labelled text is guaranteed to be text. This means not only that many text
+components are tossed in as negative training data, but also that our errors
+may be exaggerated at test time. Second, we have a small dataset and a large
+number of negative data, which means it’s hard to make decisive conclusions
+about this performance.
+
+From both qualitative and rough quantitative measures, however, our decision
+tree outperforms both the probability density method and the SWT method
+implementations in our experiments.
+
+\subsection{Conclusion}
+
+We have shown a number of modifications to the Stroke Width Transform that
+improve its false positive error while attempting to maintain the true
+positives. These perform reasonably well, although, since we are focusing on
+improving text detection specifically for the Kannada language, future efforts
+can be made in exploiting features characteristic of the Kannada script.
+
+\begin{thebibliography}{1}
+
+\bibitem{SWT}
+Boris Epshtein, Eyal Ofek, Yonatan Wexler. \emph{Detecting Text in Natural
+Scenes with Stroke Width Transform}.
+
+\bibitem{char74k}
+T. E. de Campos, B. R. Babu and M. Varma. Character recognition in natural
+images. In \emph{Proceedings of the International Conference on Computer Vision
+Theory and Applications (VISAPP), Lisbon, Portugal}, February 2009.
+
+\bibitem{KannadaCharRecog}
+M. Mahadeva Prasad, M. Sukumar, A. G. Ramakrishnan. \emph{Divide and Conquer
+Technique in Online Handwritten Kannada Character Recognition.}
+
+\bibitem{SWTvoting}
+Andrej Icica, Peter Peer. \emph{SWT Voting-Based Color Reduction For Text Detection
+in Natural Scene Images.}
+
+\bibitem{GithubImpl}
+DetectText, An implementation of the SWT in C++. https://github.com/aperrau/DetectText
+
+\end{thebibliography}
+
+\end{multicols}
+
+\end{document}
