@@ -1,4 +1,7 @@
 FullImagesAndAnnotations
 images
+
 *.png
 *.jpg
+
+Thumbs.db
