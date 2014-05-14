@@ -229,15 +229,15 @@ Transform, we move on to a decision tree based classifier.
 
 \subsection{Decision Trees}
 In order to avoid issues with tuning, we turn to a simple decision tree based
-classifier. Decision trees are well suited to this problem for two reasons: the
-problem is definitely not linearly separable, as these features simply are not
-intricate enough, and because they can easily model different relationships
-between features based on thresholds. We attempted to train an SVM on a small
-set of data as part of a quick experiment, but found that overall decision
-trees were both theoretically more sound and performed better.
+classifier, a commonly used, relatively simple method from machine learning.
+The classifier trains on a set of positive and negative feature vectors (in our
+case, components which are text versus other components), and at each node
+chooses a binary question of the form x > Tx that best splits the data. After
+training, we can ask these questions of arbitrary components to separate text
+components from non-text components
 
 { \centering
-\includegraphics[height=0.5\textwidth]{assets/bangalore}
+\includegraphics[height=0.3\textwidth]{assets/bangalore}
 \captionof{figure}{Street sign with text.}
 \label{fig:bangalore} }
 
