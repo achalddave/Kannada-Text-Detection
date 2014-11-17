@@ -154,62 +154,8 @@ function [swt_im, ccomps, E] = swt(IM, light_on_dark)
 
     % Connected components analysis
     'Creating connected graph'
-
-    % Note: This next part is a bit tricky for speed.
-    % /----------\
-    % |   |   |   |
-    % -------------
-    % |   | x | r |
-    % -------------
-    % |   | d |rd |
-    % \----------/
-    %
-    % For each pixel x, we want to decide whether it has an edge to its neighbors
-    % r, d, and rd in our graph.
-    %
-    % We can do a number of loops, but a much faster way is to shift the stroke
-    % width matrix left, up, and left-up to do the calculations with no loops.
-    %
-    % Once we have these calculations, we can create 3 binary matrices: r_edge,
-    % d_edge, rd_edge, where, e.g., r_edge(r, c) says whether there is an edge
-    % from (r, c) to (r, c+1) [it's neighboring pixel to the right].
-
-    shifted_widths = cell([1 3]);
-    shifted_widths{1} = padarray(stroke_widths(1:end, 2:end), [0 1], 0, 'post'); % shift left
-    shifted_widths{2} = padarray(stroke_widths(2:end, 1:end), [1 0], 0, 'post'); % shift up
-    shifted_widths{3} = padarray(stroke_widths(2:end, 2:end), [1 1], 0, 'post'); % shift up-left
-
     is_connected = @(A,B) ((A ./ B <= 3) & (B ./ A <= 3));
-    r_edge  = is_connected(stroke_widths, shifted_widths{1});
-    d_edge  = is_connected(stroke_widths, shifted_widths{2});
-    rd_edge = is_connected(stroke_widths, shifted_widths{3});
-
-    % We have the binary matrices; we need to create a sparse matrix of
-    % dimension (h*w, h*w) of edges. We can construct it by storing just the
-    % edges in conn_src and conn_dst (s.t. conn_src(i) links to conn_dst(i)).
-    % Note that these must store raw indices in the range [1, h*w], so we have
-    % to do some math. Specifically, (r, c) = r + h * (c - 1).
-    conn_src = [];
-    conn_dst = [];
-    [r_r, r_c] = find(r_edge);
-    conn_src = [conn_src (r_r + h*(r_c-1))'  (r_r + h*(r_c))'   ];
-    conn_dst = [conn_dst (r_r + h*(r_c))'    (r_r + h*(r_c-1))' ];
-
-    [r_r, r_c] = find(d_edge);
-    conn_src = [conn_src (r_r + h*(r_c-1))'    (r_r+1 + h*(r_c-1))' ];
-    conn_dst = [conn_dst (r_r+1 + h*(r_c-1))'  (r_r   + h*(r_c-1))' ];
-
-    [r_r, r_c] = find(rd_edge);
-    conn_src = [conn_src (r_r + h*(r_c-1))' (r_r+1 + h*(r_c))'  ];
-    conn_dst = [conn_dst (r_r+1 + h*(r_c))' (r_r   + h*(r_c-1))'];
-
-    vals = ones(1, size(conn_src, 2));
-
-    'Calculating connected components'
-    graph_mat = sparse(conn_src, conn_dst, vals, h*w, h*w);
-    [num_ccs, cc_labels] = graphconncomp(graph_mat);
-
-    component_vals = cell([1, num_ccs]);
+    ccomps = conn_comp(stroke_widths, @is_connected);
 
     ccomps = reshape(cc_labels, h, w);
     swt_im = stroke_widths;
